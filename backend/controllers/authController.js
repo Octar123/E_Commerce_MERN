@@ -48,3 +48,44 @@ export const register = async(req, res) => {
         res.status(500).json({message: 'Server Error'});
     }
 }
+
+export const login = async(req, res) => {
+    try{
+        const {email, password} = req.body;
+
+        const user = await User.findOne({email});
+
+        if(!user){
+            return res.status(400).json({message: "Invalid credentials"});
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if(!isMatch){
+            return res.status(400).json({message: "Invalid credentials"});
+        }
+
+        const payload = {
+            user: {
+                id: user._id,
+                role: user.role
+            }
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '1d'});
+
+        res.json({
+            message: "Logged in successfully",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message: "Server error"})
+    }
+}
