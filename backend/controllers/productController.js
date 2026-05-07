@@ -22,3 +22,16 @@ export const createProduct = async(req, res) => {
         res.status(500).json({message: "Failed to create product", error: error.message});
     }
 }
+
+export const getProducts = async(req, res) => {
+    try {
+        const products = await Product.find()
+            .populate('vendorId', 'name email')
+            .populate('category', 'name');
+        
+        res.json(products);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message: "Failed to fetch products", error: error.message});
+    }
+}
